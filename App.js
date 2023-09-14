@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,16 +10,44 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import TodoList from "./src/components/todosList/TodoList";
-import { useState } from "react";
 import Input from "./src/components/input/Input";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function App() {
   const [todo, setTodo] = useState("");
   const [todos, setTodos] = useState([]);
 
+  useEffect(() => {
+    // Uygulama başlatıldığında AsyncStorage'den verileri alın
+    retrieveData();
+  }, []);
+
+  const retrieveData = async () => {
+    try {
+      const data = await AsyncStorage.getItem("data");
+      if (data !== null) {
+        // AsyncStorage'den alınan JSON verisini diziye dönüştürün
+        setTodos(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error("Veri alınamadı:", error);
+    }
+  };
+
+  const saveData = async (newTodos) => {
+    try {
+      // Todos'u AsyncStorage'e kaydet, JSON.stringify kullanarak string'e dönüştürün
+      await AsyncStorage.setItem("data", JSON.stringify(newTodos));
+    } catch (error) {
+      console.error("Veri kaydedilemedi:", error);
+    }
+  };
+
   const handleText = (text) => {
     setTodo(text);
   };
+
   const addTodo = () => {
     if (todo !== "") {
       const newTodo = {
@@ -26,7 +55,9 @@ export default function App() {
         todo: todo,
         status: true,
       };
-      setTodos([...todos, newTodo]);
+      const newTodos = [...todos, newTodo];
+      setTodos(newTodos);
+      saveData(newTodos); // Yeni todos'u kaydet
       setTodo("");
     }
   };
@@ -34,10 +65,24 @@ export default function App() {
   const handleTodoLongPress = (todoId) => {
     const newTodos = todos.filter((todo) => todo.id !== todoId);
     setTodos(newTodos);
+    saveData(newTodos); // Değiştirilmiş todos'u kaydet
+  };
+
+  const toggleTodoStatus = (todoId) => {
+    const newTodos = todos.map((todo) => {
+      if (todo.id === todoId) {
+        return { ...todo, status: !todo.status };
+      } else {
+        return todo;
+      }
+    });
+    setTodos(newTodos);
+    saveData(newTodos); // Durumu değiştirilmiş todos'u kaydet
   };
 
   const deleteAll = () => {
     setTodos([]);
+    AsyncStorage.clear(); // AsyncStorage'yi temizle
   };
 
   return (
@@ -49,7 +94,11 @@ export default function App() {
         </TouchableOpacity>
       </View>
       <View style={styles.innerContainer}>
-        <TodoList todos={todos} onLongPress={handleTodoLongPress} />
+        <TodoList
+          todos={todos}
+          onLongPress={handleTodoLongPress}
+          onPress={toggleTodoStatus}
+        />
         <Input handleText={handleText} addTodo={addTodo} item={todo} />
       </View>
 

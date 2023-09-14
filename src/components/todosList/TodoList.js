@@ -1,7 +1,9 @@
+import React from "react";
+import { ScrollView } from "react-native";
 import Todo from "../todo/Todo";
-import { ScrollView, TouchableHighlight, View } from "react-native";
 import styles from "./TodoListStyles";
-const TodoList = ({ todos, onLongPress }) => {
+
+const TodoList = ({ todos, onLongPress, onPress }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {todos.map((item) => (
@@ -9,6 +11,7 @@ const TodoList = ({ todos, onLongPress }) => {
           content={item}
           key={item.id}
           onLongPress={() => onLongPress(item.id)}
+          onPress={() => onPress(item.id)}
         />
       ))}
     </ScrollView>

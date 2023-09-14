@@ -1,16 +1,15 @@
-import React, { useState } from "react";
-import { View, TouchableOpacity, Text, Alert } from "react-native";
+import React from "react";
+import { TouchableOpacity, Text } from "react-native";
 import styles from "./TodoStyles";
-const Todo = ({ content, onLongPress }) => {
-  const [status, setStatus] = useState(content.status);
 
+const Todo = ({ content, onLongPress, onPress }) => {
   const press = () => {
-    setStatus(!status);
+    onPress();
   };
 
   return (
-    <TouchableOpacity onPress={() => press()} onLongPress={onLongPress}>
-      <Text style={(status && styles.todo) || styles.completed}>
+    <TouchableOpacity onPress={press} onLongPress={onLongPress}>
+      <Text style={(content.status && styles.todo) || styles.completed}>
         {content.todo}
       </Text>
     </TouchableOpacity>
